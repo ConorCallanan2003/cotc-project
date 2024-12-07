@@ -5,10 +5,15 @@ from src.modules.Database.database import Database
 from src.modules.Logger.logger import LogLevel, Logger
 
 class ServerHelpers:
-    engine = Database().engine()
+    engine = None
+    
+    @staticmethod
+    def initialize():
+       ServerHelpers.engine = Database().engine() 
     
     @staticmethod
     def timer(func):
+        @functools.wraps(func)
         def decorated_function(*args, **kwargs):
             start_time = time.time()
             result = func(*args, **kwargs)
@@ -19,10 +24,9 @@ class ServerHelpers:
     
     @staticmethod
     def session_provider(func):
-        global engine
         @functools.wraps(func)
         def decorated_function(*args, **kwargs):
-            with Session(engine) as session:
+            with Session(ServerHelpers.engine) as session:
                 result = func(session, *args, **kwargs)
                 session.commit()
                 return result

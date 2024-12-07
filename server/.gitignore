@@ -3,3 +3,4 @@ server_env/
 **/__pycache__/
 *.db
 **/.ropeproject/
+*.DS_Store

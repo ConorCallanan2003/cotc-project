@@ -42,10 +42,11 @@ class Logger():
     _lock = threading.Lock()
     _logger = None
     
-    def __new__(cls, message: str = None, level: LogLevel = LogLevel.INFO):
+    def __new__(cls, message: str = None, level: LogLevel = LogLevel.INFO, intitialize=False, ):
         if cls._instance:
             cls._logger.log(level.value, message)
             return
+        assert intitialize, "Attempt to log before logger is initialized! Please initialize the logger with Logger()"
         with cls._lock:
             if cls._instance == None:
                 cls._instance = super(Logger, cls).__new__(cls)
@@ -54,6 +55,7 @@ class Logger():
                 ch = logging.StreamHandler()
 
                 ch.setFormatter(CustomFormatter())
+                
 
                 cls._logger.addHandler(ch)
                 cls._logger.debug("Logger initialized")

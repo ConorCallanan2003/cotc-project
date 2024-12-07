@@ -1,4 +1,5 @@
 import os
+from src.modules.ServerHelpers.server_helpers import ServerHelpers
 from src.modules.Database.database import Database
 
 # Code to be run during server startup
@@ -16,10 +17,10 @@ from src.modules.ConfigParser.config_parser import Config
 from src.modules.Logger.logger import LogLevel, Logger
 
 class StartUp():
-    # def __enter__(self):
-    def __init__(self):
+    def __enter__(self):
+    # def __init__(self):
         print("Starting logger...")
-        Logger()
+        Logger(intitialize=True)
         
         Logger("Logger started", LogLevel.INFO)
         Logger("Parsing args...", LogLevel.INFO)
@@ -40,12 +41,11 @@ class StartUp():
 
         Logger(f"Config parsed! Parsed: {Config._sections()}", LogLevel.INFO)
         
-        Logger("Configurign database...", LogLevel.INFO)
+        Logger("Configuring database...", LogLevel.INFO)
         assert Config("database").location, "No database location provided in config file"
-        assert os.path.isfile(Config("database").location), "Database file does not exist"
-        Database(Config("database").location)
-        Logger("Database configured", LogLevel.INFO)
         
+        Database(initialize=True)
+        Logger("Database configured", LogLevel.INFO)
 
         Logger("Configuring logging", LogLevel.INFO)    
 
@@ -53,19 +53,29 @@ class StartUp():
             Logger.setLevel(Config("logging").level)
 
         Logger("Logging configured", LogLevel.INFO)
+        
+        Logger("Initializing server helpers...", LogLevel.INFO)
+        ServerHelpers.initialize()
+        Logger("Servers helpers initialized", LogLevel.INFO)
 
         Logger("Debug log level enabled", LogLevel.DEBUG)
         Logger("Warning log level enabled", LogLevel.WARNING)
         Logger("Error log level enabled", LogLevel.ERROR)
         Logger("Critical log level enabled", LogLevel.CRITICAL)
         
-        # return self
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         Logger("Exiting program and releasing resources...", LogLevel.INFO)
         self.parser = None
         self.config = None
         self.args = None
+        if exc_type:
+            Logger(f"Exiting program with error: {exc_val}", LogLevel.ERROR)
+            Logger(f"Exiting program with error: {exc_tb}", LogLevel.ERROR)
+        else:
+            Logger("Exiting program successfully", LogLevel.INFO)
+        Logger("Program exited", LogLevel.INFO)
         return True
 
 

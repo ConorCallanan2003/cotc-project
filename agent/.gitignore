@@ -1,3 +1,6 @@
 **/__pycache__/
 agent_env/
 *.ini
+**/.ropeproject/
+*.db
+*.DS_Store

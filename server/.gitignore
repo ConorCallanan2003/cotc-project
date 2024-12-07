@@ -1,3 +1,5 @@
 server_env/
 *.ini
-*.swp
+**/__pycache__/
+*.db
+**/.ropeproject/

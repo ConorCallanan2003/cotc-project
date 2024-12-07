@@ -1,10 +1,9 @@
-from modules.ServerHandler.server_handler import Server
-
+from agent.src.modules.StartUp.start_up import StartUp
 
 def main():
-    server = Server()
-    server.serve()
-    
+    startUp = StartUp()
+    logger = startUp.getLogger()
+    logger.info("Agent has started successfully")
 
 if __name__ == '__main__':
     main()

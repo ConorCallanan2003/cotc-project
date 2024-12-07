@@ -1,14 +1,4 @@
-# Code to be run during server startup
-if __name__ == "__main__":
-    import os
-    dir_path = '../../'
-    absolute_path = os.path.abspath(dir_path)
-    existing_path = os.environ.get('PATH')
-
-    os.environ['PATH'] = dir_path + ':' + absolute_path
-
-    print(absolute_path)
-
+import logging
 from modules.ArgParser.arg_parser import ArgumentParser
 from modules.ConfigParser.config_parser import ConfigParser
 from modules.Logger.logger import Logger
@@ -18,6 +8,7 @@ class StartUp():
         print("Starting logger...")
         loggerWrapper = Logger()
         logger = loggerWrapper.getLogger()
+        assert type(logger) == logging.Logger, "logger variable is not of type logging.Logger"
         logger.info("Logger started")
         logger.info("Parsing args...")
         parser = ArgumentParser()
@@ -27,32 +18,32 @@ class StartUp():
         args = parser.parse_args()
         logger.info("Args parsed")
         logger.info("Parsing config...")
-        
+
         if args.config_file == None:
             args.config_file = f"../config/config_{args.dev_or_prod}.ini"
-        
+
         config = ConfigParser(args.config_file)
-        
+
         logger.info("Config parsed")
-        
+
         logger.info("Configuring logging")
-        
+
         if config.logging and config.logging.level:
             self.logLevel = config.logging.level
             loggerWrapper.setLevel(config.logging.level)
-        
+
         logger.info("Logging configured")
-        
-        logger.debug("Debug log level enabled")    
+
+        logger.debug("Debug log level enabled")
         logger.warning("Warning log level enabled")
         logger.error("Error log level enabled")
         logger.critical("Critical log level enabled")
-        
+
         config.setLogger(logger)
-        
+
         self.config = config
         self.logger = logger
-        
+
     def __setUpUvicornConfigForLogs__(self):
         config = {}
 
@@ -114,20 +105,21 @@ class StartUp():
         ],
         "level": self.logLevel
         }
-        
+
         self.uvicornConfig = config
 
-        
     def getUvicornConfig(self):
         return self.uvicornConfig
-        
-    def getLogger(self):
+
+    def getLogger(self) -> logging.Logger:
+        assert type(self.logger) == logging.Logger, "logger variable is not of type logging.Logger"
         return self.logger
-    
+
     def getLogLevel(self):
         return self.logLevel
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb):
+        assert type(self.logger) == logging.Logger, "logger variable is not of type logging.Logger"
         self.logger.info("Exiting program and releasing resources...")
         for handler in self.logger.handlers:
             handler.close()
@@ -138,11 +130,13 @@ class StartUp():
         self.config = None
         self.args = None
         return True
-        
-    
+
+
 if __name__ == "__main__":
-    
+
     startUp = StartUp()
     logger = startUp.getLogger()
-    
+
+    assert(type(logger) == logging.Logger)
+
     logger.info("Startup complete")

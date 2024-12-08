@@ -44,6 +44,7 @@ class Logger():
     
     def __new__(cls, message: str = None, level: LogLevel = LogLevel.INFO, intitialize=False, ):
         if cls._instance:
+            # Fix this: line returned is just this line, should be passed through
             cls._logger.log(level.value, message)
             return
         assert intitialize, "Attempt to log before logger is initialized! Please initialize the logger with Logger()"

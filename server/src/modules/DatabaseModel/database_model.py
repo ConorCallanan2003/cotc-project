@@ -32,7 +32,6 @@ class Device(Base):
     # Relationships
     aggregator = relationship("Aggregator", back_populates="devices")
     metric_types = relationship("MetricType", back_populates="device")
-    metric_snapshots = relationship("MetricSnapshot", back_populates="device")
     
     def to_dict(self):
         return {
@@ -51,7 +50,7 @@ class MetricType(Base):
 
     # Relationships
     device = relationship("Device", back_populates="metric_types")
-    metric_values = relationship("MetricValue", back_populates="metric_type")
+    metric_snapshots = relationship("MetricSnapshot", back_populates="metric_type")
     
     def to_dict(self):
         return {
@@ -65,13 +64,13 @@ class MetricSnapshot(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     metric_type_id = Column(Integer, ForeignKey('metric_types.id'), nullable=False)
-    value = Column(Numeric, nullable=False)
     client_timestamp_utc = Column(Integer, nullable=False)
     client_timezone_mins = Column(Integer, nullable=False)
     server_timestamp_utc = Column(Integer, nullable=False)
+    value = Column(Numeric, nullable=False)
 
     # Relationships
-    metric_types = relationship("MetricType", back_populates="metric_snapshots")
+    metric_type = relationship("MetricType", back_populates="metric_snapshots")
     
     def to_dict(self):
         return {

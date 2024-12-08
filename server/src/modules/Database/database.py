@@ -35,7 +35,7 @@ class Database:
                 cls._instance = super().__new__(cls)
                 Logger(f'Initializing database at {location}', LogLevel.INFO)
                 cls._engine=sqlalchemy.create_engine(f'sqlite:///{location}', echo=echo_database_output, echo_pool="debug")
-                Logger(f'Initializing database at {location}', LogLevel.INFO)
+                Logger(f'Creating tables if they don\'t exist', LogLevel.INFO)
                 Base.metadata.create_all(cls._engine)
                 
         return cls._instance

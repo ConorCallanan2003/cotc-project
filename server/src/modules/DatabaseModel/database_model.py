@@ -75,7 +75,7 @@ class MetricSnapshot(Base):
     def to_dict(self):
         return {
             'id': self.id,
-            'device_id': self.device_id,
+            'metric_type_id': self.metric_type_id,
             'client_timestamp_utc': self.client_timestamp_utc,
             'client_timezone_mins': self.client_timezone_mins,
             'server_timestamp_utc': self.server_timestamp_utc

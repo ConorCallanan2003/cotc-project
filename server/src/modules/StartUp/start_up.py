@@ -1,4 +1,6 @@
+import inspect
 import os
+import traceback
 from src.modules.ServerHelpers.server_helpers import ServerHelpers
 from src.modules.Database.database import Database
 
@@ -71,8 +73,10 @@ class StartUp():
         self.config = None
         self.args = None
         if exc_type:
-            Logger(f"Exiting program with error: {exc_val}", LogLevel.ERROR)
-            Logger(f"Exiting program with error: {exc_tb}", LogLevel.ERROR)
+            exc_info = traceback.format_exception(exc_type, value=exc_val, tb=exc_tb)
+            for line in exc_info:
+                Logger(line.strip(), LogLevel.ERROR)
+
         else:
             Logger("Exiting program successfully", LogLevel.INFO)
         Logger("Program exited", LogLevel.INFO)

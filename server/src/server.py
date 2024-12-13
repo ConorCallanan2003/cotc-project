@@ -1,33 +1,47 @@
-from flask import Flask, request, jsonify
+from flask_socketio import SocketIO, emit
+from flask import Flask, request, jsonify, render_template, send_from_directory
 from sqlalchemy.orm import Session
-from src.modules.WebSocketQueue.websocket_queue import WebSocketDispatchManager
+from src.modules.WebSocketQueue.websocket_queue import WebSocketConnectionManager
 from src.modules.DatabaseModel.database_model import *
 from datetime import datetime, timezone
 
 from src.modules.ServerHelpers.server_helpers import ServerHelpers
 from src.modules.Logger.logger import LogLevel, Logger
 import time
-from flask_sock import Sock
-import asyncio
-
 
 App = Flask(__name__)
-sock = Sock(App)    
+socketio = SocketIO(App, cors_allowed_origins="*")
 
-@sock.route('/snapshots/<id>')
-def snapshots(ws, id):
-    WebSocketDispatchManager(id, ws.send)
-    # Connection TTL
-    time.sleep(2000)
-    ws.close()
+@socketio.on('connect')
+def connect():
+    Logger(f"Client connected: {request.sid}", LogLevel.INFO)
+    
+@socketio.on('subscribe')
+def connect(data):
+    WebSocketConnectionManager.add_client(data["device_id"], request.sid, emit)
+    
 
-@App.get("/")
-def index():
-    return "Hello, World!"
+@socketio.on('disconnect')
+def disconnect():
+    Logger(f"Client disconnected: {request.sid}", LogLevel.INFO)
+    # WebSocketConnectionManager.remove_client(device_id, request.sid)
+    
+@App.route('/')
+def home():
+    """Renders the home page."""
+    return render_template('index.html')
 
+
+# @App.get("/")
+# def index():
+#     return "Hello, World!"
+# Favicon endpoint:
+@App.get("/favicon.ico")
+def favicon():
+    return send_from_directory('static', "favicon.ico")
 
 @App.errorhandler(404)
-def not_found(error):
+def not_found():
     Logger(f"Route not found: {request.url}", LogLevel.WARNING)
     return jsonify({'error': 'Route not found'}), 404
 
@@ -64,19 +78,6 @@ def get_device(session: Session, id):
 def get_metric_type(session: Session, id):
     metric_type = session.query(MetricType).get(id)
     return jsonify(metric_type.to_dict())
-
-
-# @App.get("/aggregators")
-# @ServerHelpers.session_provider
-# def get_aggregators(session: Session):
-#     aggregators = session.query(Aggregator).all()
-#     return jsonify([aggregator.to_dict() for aggregator in aggregators])
-
-# @App.get("/metric_types")
-# @ServerHelpers.session_provider
-# def get_metric_types(session: Session):
-    # metric_types = session.query(MetricType).all()
-    # return jsonify([metric_type.to_dict() for metric_type in metric_types])
 
 @App.get("/test_resource_heavy_request")
 @ServerHelpers.timer
@@ -129,7 +130,7 @@ def register_metric_snapshot(session: Session, id):
     #     return jsonify({'error': 'Invalid signature'}), 400
     data = request.get_json()
 
-    WebSocketDispatchManager.call(id, data['value'])
+    WebSocketConnectionManager.call(id, data['value'])
     
     metric_snapshot = MetricSnapshot(metric_type_id=id, value=data['value'], client_timestamp_utc=data['client_timestamp_utc'], client_timezone_mins=data['client_timezone_mins'], server_timestamp_utc=datetime.now(timezone.utc))
     session.add(metric_snapshot)
